@@ -1,6 +1,6 @@
 include "globals.mzn";
 
-%constants
+%%% constants
 int: Students;
 int: Horizon;
 int: Hospitals;
@@ -54,7 +54,7 @@ array [1..Students] of var int: SatTot;  % Sum of satisfactions above
 var int: w_score; % worst score
 var int: c; % value maximized
 
-%constraints to assign values to aux variables
+%%% Constraints to assign values to aux variables
 constraint   forall(s in 1..Students, t in 1..Horizon, d in 1..Disciplines)
       (sched_disc[s,t,d] = sum(h in 1..Hospitals)(schedule[s,t,h,d]));
 
@@ -64,131 +64,127 @@ constraint   forall(s in 1..Students, t in 1..Horizon, h in 1..Hospitals)
 constraint   forall(s in 1..Students, t in 1..Horizon)
       (attending[s,t] = sum(d in 1..Disciplines,h in 1..Hospitals)(schedule[s,t,h,d]));
 
-% frequento disc. solo se la frequento per un numero di periodi== durata
+%%% Disc is attended if it fills n. of slots in the schedule equal to the duration
 constraint   forall(s in 1..Students, d in 1..Disciplines)
       (disc_attending[s,d] = (sum(t in 1..Horizon,h in 1..Hospitals) (schedule[s,t,h,d])) div Duration);  
-% channeling constraint tra hosp_attending e sched_hops                 
+%%% Channeling constraint between hosp_attending and sched_hops                 
 constraint   forall(s in 1..Students,t in 1..Horizon,h in 1..Hospitals)
       ((sched_hosp[s,t,h]>0 -> hosp_attending[s,t]=h));
-% channeling constraint tra schedule e hosp_attending/disc_schedule
+%%% Channeling constraint between schedule and hosp_attending/disc_schedule
 constraint   forall(s in 1..Students, t in 1..Horizon, d in 1..Disciplines, h in 1..Hospitals)
       (schedule[s,t,h,d]>0 -> (disc_schedule[s,t]=d /\ hosp_attending[s,t]=h));
-% se attending ==0 allora hosp_attending/disc_schedule ==0 
+%%% If attending ==0 then hosp_attending/disc_schedule ==0 
 constraint   forall(s in 1..Students, t in 1..Horizon)
       (attending[s,t]=0 -> (hosp_attending[s,t]=0 /\ disc_schedule[s,t]=0));
-% disciplina va frequentata in periodi contigui
+%%% Disc. needs to be attended in consecutive periods
 constraint   forall(s in 1..Students, t in 2..Horizon-Duration+1)
       ((disc_schedule[s,t]>0 /\ disc_schedule[s,t-1]!=disc_schedule[s,t])->(forall(dur in 1..Duration-1) (disc_schedule[s,t+dur]=disc_schedule[s,t])));
-% per tutta la durata della disc. devo frequentare stesso osp.
+%%% For all duration of disc. the hospital has to stay the same
 constraint   forall(s in 1..Students, t in 2..Horizon-Duration+1)
       ((hosp_attending[s,t]>0 /\ disc_schedule[s,t-1]!=disc_schedule[s,t])->(forall(dur in 1..Duration-1) (hosp_attending[s,t+dur]=hosp_attending[s,t])));
-% primo periodo orizz.: se frequento disc. la "striscia" disc/osp deve rimanere la stessa per tutta durata disc.
+%%% As above: takes care of first period in the schedule
 constraint   forall(s in 1..Students)
             (disc_schedule[s, 1]>0-> (forall(dur in 1..Duration-1) (disc_schedule[s,1+dur]=disc_schedule[s,1] /\ hosp_attending[s,1+dur]=hosp_attending[s,1]))) ;
-% ultimo periodo orizz.: se frequento disc. allora ci dev'essere una "striscia" disc/osp a partire dall'istante Horizon-dur
+%%% As above: takes care of the last period in the schedule
 constraint   forall(s in 1..Students)
             (disc_schedule[s, Horizon]>0-> (forall(dur in 1..Duration-1) (disc_schedule[s,Horizon-dur]=disc_schedule[s,Horizon] /\ hosp_attending[s,Horizon-dur]=hosp_attending[s,Horizon])));
            
-%%% AL MASSIMO UNA VOLTA UNA DISCIPLINA PER STUDENTE
-%% numero di celle ==1 per disc. non dev'essere > durata disc. 
+%%% Discipline can be attended only once (i.e. num of slots with said disc. <= duration) 
 constraint   forall(s in 1..Students, d in 1..Disciplines)
     (sum(t in 1..Horizon)(sched_disc[s,t,d]) < Duration+1); 
 
-%%% AL MASSIMO UNA DISC ALLA VOLTA PER STUDENTE
+%%% Max one discipline at the time for each student
 
 constraint   forall(s in 1..Students, t in 1..Horizon)
     (sum(d in 1..Disciplines)(sched_disc[s,t,d]) < 2);
   
-%%% AL MASSIMO UN OSPEDALE ALLA VOLTA PER STUDENTE
+%%% Max one hospital at the time for each student
 
 constraint   forall(s in 1..Students, t in 1..Horizon)
     (sum(h in 1..Hospitals)(sched_hosp[s,t,h]) < 2);  
      
-%%% VINCOLO SULLE DISCIPLINE PER STUDENTE,
-%%% ORGANIZZATE A GRUPPI
-
-%Numero di disc. frequentate (per gruppo) da studente dev'essere esattamente quanto richiesto
+%%% Number of disc. attended (per group) by eachs student has to be the one required
 constraint   forall(s in 1..Students, g in 1..Groups)
       (StudDiscGroup[s,g]* Duration= 
        sum(t in 1..Horizon, h in 1..Hospitals, d in 1..Disciplines where DiscGroup[d] = g)
           ( schedule[s,t,h,d]));
           
-%Studente può seguire disc. solo se gli/le è permesso
+%%% Student can attend disc. only if he/she is allowed to
 constraint forall (s in 1..Students,d in 1..Disciplines)
          (disc_attending[s,d]>0->AllowedDisc[s,d]>0);   
        
-%constraint: Precedenze
+%%% Precedences between disciplines
 constraint   forall(s in 1..Students,d in 1..Disciplines,t in 1..Horizon)(
            ((sched_disc[s,t,d]=1)-> forall(d1 in 1..Disciplines)
                   (Precededby[d,d1]>0 -> sum(i in 1..t)(sched_disc[s,i,d1])>0)));
-%Numero disc. seguite in un singolo ospedale non deve eccedere max richiesto
+%%% Number of disc. attended in a single hospital cannot exceed the max required
 constraint forall (s in 1..Students,h in 1..Hospitals)
            (sum(t in 1..Horizon) (sched_hosp[s,t,h]) div Duration < MaxDiscPerHosp+1);
                    
-%%% VINCOLO SULLE DISCIPLINE PER TEMPO, PER OSPEDALE
-%constraint: Numero max di studenti richiesti
+%%% Max number of students allowed on a ward in a given period
 constraint   forall(h in 1..Hospitals, t in 1..Horizon, d in 1..Disciplines)
                (MaxPosHosp[h,d,t]  >= sum(s in 1..Students)( schedule[s,t,h,d]));
-%constraint: Numero min di studenti richiesti
+%%% Min number of students required by a ward in a given period
 constraint   forall(h in 1..Hospitals, t in 1..Horizon, d in 1..Disciplines)   
                 (MinPosHosp[h,d,t]  <= sum(s in 1..Students)( schedule[s,t,h,d]));
-%Studente deve essere in grado di seguire disc. in un determinato osp. per poter frequentare disc. in quell'osp. (abilità)
+%%% Student must possess the ability to work in a given ward 
 constraint forall (s in 1..Students,h in 1..Hospitals,d in 1..Disciplines)
          (Ability[s,h,d]<1 -> sum(t in 1..Horizon) (schedule[s,t,h,d]) <1);
             
-%constraint: disponibilità
+%%% Student has to be available to work in given period
 constraint  forall(s in 1..Students, t in 1..Horizon)
             (attending[s,t] > 0 -> Availability[s,t] > 0);                   
                     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
-%%%%%%%%%%%           FUNZIONI DI COSTO    %%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%           COST FUNCTIONS       %%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 
-% calcolo sat. disc.
+%%% Desire in terms of disciplines is computed
 constraint  
 forall(s in 1..Students)
             (SatDisc[s]=sum(d in 1..Disciplines) 
             (WeightPref[s,1]*PrefStudDisc[s,d]*disc_attending[s,d])); 
-% calcolo sat. osp.
+%%% Desire in terms of hospitals is computed
 constraint  forall(s in 1..Students) 
             (SatHosp[s]=(sum(d in 1..Disciplines,t in 1..Horizon,h in 1..Hospitals) 
             (WeightPref[s,2]*PrefStudHosp[s,h]*schedule[s,t,h,d]) div Duration));
-% determino quali sono i periodi in cui lo studente è libero che sono effettivamente "buchi"
+%%% Determines which free periods are to be considered waiting times and which don't.
 constraint   forall(s in 1..Students)(aux_pause[s,Horizon] = attending[s,Horizon]) /\
              forall(s in 1..Students,t in 1..Horizon-1)(
-             %%% Max fa or. E' zero solo se non ci sono riprese DOPO
+             %%% Max works as an OR. It's 0 only if all the following slots are empty
                (aux_pause[s,Horizon-t] = 
                          max(attending[s,Horizon-t],aux_pause[s,Horizon-t+1])));
-% calcolo sat. wait
+%%% Desire in terms of waiting times in the schedule computed
 constraint forall(s in 1..Students)
            (SatWait[s]=sum(t in 1..Horizon-1)
            (WeightPref[s,4]*(1-attending[s,t])*aux_pause[s,t]));
            
-% Calcolo num. di volte che studente modifica osp.
-% aux_chhosp == ospedale frequentato if in quel periodo frequenta osp. else == all'ultimo ospedale frequentato prima dell'istante t-mo.
+%%% Computes the number of times a student changes hospitals in his/her schedule
+%%% Following three constraints determine the value of aux_chhosp.
+%%% aux_chhosp == if attending ==>hospital attended else == last hospital attended before the t-th period.
 
-% aux_chhosp può essere 0 se studente inizia non al tempo t=1.
+%%% Aux_chhosp is 0 if students does not start at time t=1.
 constraint forall(s in 1..Students)
            (aux_chhosp[s,1]=hosp_attending[s,1]);
-% se frequento osp. basta copiare valore
+%%% If attending value is simply copied
 constraint forall(s in 1..Students,t in 2..Horizon)
            (hosp_attending[s,t]>0-> (aux_chhosp[s,t]=hosp_attending[s,t]));
-% se non frequento allungo la "striscia" anche su periodi che sono vuoti
+%%% If not attending: value is copied from the slot immediatly before the one in t
 constraint forall(s in 1..Students,t in 2..Horizon)
            (hosp_attending[s,t]=0-> (aux_chhosp[s,t]=aux_chhosp[s,t-1]));
-% escludiamo celle in cui aux_chhosp=0, perchè corrispondono a buco iniziale
+%%% Desire in terms of changes of hospitals in the schedule computed
 constraint forall(s in 1..Students)
            (SatChn[s]=sum(t in 1..Horizon-1)(aux_chhosp[s,t]!=0 /\ aux_chhosp[s,t]!=aux_chhosp[s,t+1])*WeightPref[s,3]);
-% calcolo sat. manager
+%%% Desire of the medical school in terms of disciplines followed by a student
 constraint  forall (s in 1..Students)
             (SatMan[s]=sum(d in 1..Disciplines) 
             (ManPref[d]*disc_attending[s,d])); 
-% somma varie sat.
+%%% Sum of all desires computed above (per student)
 constraint forall(s in 1..Students)
            (SatTot[s]=SatDisc[s]+SatHosp[s]+SatMan[s]+SatChn[s]+SatWait[s]); 
-% calcolo peggiore score studente 
+%%% Finds the worst score 
 constraint w_score=min(s in 1..Students) (SatTot[s]);
-% valore effettivamente massimizzato
+%%% Computes the value to be maximized
 constraint  
    c =   sum (s in 1..Students) (SatTot[s]) + w_score;   
                                    
