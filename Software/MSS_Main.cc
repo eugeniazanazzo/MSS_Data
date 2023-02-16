@@ -186,7 +186,7 @@ int main(int argc, const char* argv[])
         else 
           sa_result = MSS_solver.Resolve(out);
         out = sa_result.output;
-        cost = sa_result.cost.total;
+        cost = out.GetScore()+out.GetWorstScore();
         violations = sa_result.cost.violations;
         time = sa_result.running_time;
         
@@ -245,7 +245,8 @@ int main(int argc, const char* argv[])
       {
         if (two_stage)
           cout << "{\"cost\": " <<  cost <<  ", "
-               << "\"initial_cost\": " << initial_cost <<  ", "
+               << "\"score\": " <<out.GetScore()+out.GetWorstScore()<<", "
+               << "\"initial_score\": " << initial_cost <<  ", "
                << "\"time\": " << initial_time + time <<  ", "
                << "\"initial_time\": " << initial_time <<  ", "
                << "\"initial_violations\": " << violations <<  ", "

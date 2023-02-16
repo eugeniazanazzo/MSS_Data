@@ -1,4 +1,4 @@
-EASYLOCAL = ../easylocal-3
+EASYLOCAL = ./easylocal-3
 EL_INCLUDE = -I$(EASYLOCAL)/include
 EL_LINK = -lboost_program_options -pthread
 
