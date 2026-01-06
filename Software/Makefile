@@ -2,9 +2,9 @@ EASYLOCAL = ./easylocal-3
 EL_INCLUDE = -I$(EASYLOCAL)/include
 EL_LINK = -lboost_program_options -pthread
 
-FLAGS = -std=c++14 -Wno-sign-compare -Wall -Wfatal-errors -Wno-ignored-attributes -O3 # -g
+FLAGS = -std=c++17 -Wno-sign-compare -Wall -Wfatal-errors -Wno-ignored-attributes -O3 # -g
 
-HAVE_CPLEX = mac#linux#no
+HAVE_CPLEX = linux#mac#linux#no
 # linux
 ifeq ($(HAVE_CPLEX), linux)
 

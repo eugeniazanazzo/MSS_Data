@@ -1,0 +1,55 @@
+{
+    "type": "and",
+    "descendants": [
+        {
+            "type": "directory",
+            "name": "main::instance",
+            "path": "../Instances/Generated",
+            "match": "I.*\\.dzn"
+        },
+        {
+            "type": "discrete",
+            "name": "main::method",
+            "values": [
+                "BSA+MIP"
+            ]
+        },
+        {
+            "type": "discrete",
+            "name": "MSS_BSA::neighbors_accepted_ratio",
+            "values": [ 0.08 ]
+        },
+        {
+            "type": "discrete",
+            "name": "MSS_BSA::max_evaluations",
+            "values": [ 50000000 ]
+        },
+        {
+            "type": "discrete",
+            "name": "MSS_BSA::cooling_rate",
+            "values": [
+                0.99
+            ]
+        },
+        {
+            "type": "discrete",
+            "name": "MSS_BSA::start_temperature",
+            "values": [ 18.64 ]
+        },
+        {
+            "type": "discrete",
+            "name": "MSS_BSA::expected_min_temperature",
+            "values": [ 0.87 ]
+        },
+        {
+            "type": "discrete",
+            "name": "mip::timeout",
+            "values": [ 3600 ]
+        },
+        {
+            "type": "discrete",
+            "name": "main::swap_rate",
+            "values": [ 0.11 ]
+        }
+    ]
+}

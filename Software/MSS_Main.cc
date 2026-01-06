@@ -25,8 +25,6 @@ int main(int argc, const char* argv[])
   mip_verbose = false;
   mip_timeout = 0; 
 
-  
-  
   CommandLineParameters::Parse(argc, argv, false, true);  
 
   if (!instance.IsSet())
@@ -68,13 +66,11 @@ int main(int argc, const char* argv[])
   MSS_SwapDeltaWorstScore dcc11(in, cc7);
 
 
-  
   MSS_StateManager MSS_sm(in);
   MSS_MoveNeighborhoodExplorer MSS_nhe(in, MSS_sm);
   MSS_SwapNeighborhoodExplorer MSS_nhe2(in, MSS_sm);
 
   MSS_OutputManager MSS_om(in);
-  
   
   MSS_sm.AddCostComponent(cc1); 
   MSS_sm.AddCostComponent(cc2); 
@@ -86,9 +82,6 @@ int main(int argc, const char* argv[])
   MSS_sm.AddCostComponent(cc8); 
   MSS_sm.AddCostComponent(cc9); 
   
-  
-  
-  
   MSS_nhe.AddDeltaCostComponent(dcc1);
   MSS_nhe.AddDeltaCostComponent(dcc2);
   MSS_nhe.AddDeltaCostComponent(dcc3);
@@ -99,18 +92,15 @@ int main(int argc, const char* argv[])
   MSS_nhe.AddDeltaCostComponent(dcc12);
   MSS_nhe.AddDeltaCostComponent(dcc14);
 
-  
   MSS_nhe2.AddDeltaCostComponent(dcc8);
   MSS_nhe2.AddDeltaCostComponent(dcc9);
   MSS_nhe2.AddDeltaCostComponent(dcc10);
   MSS_nhe2.AddDeltaCostComponent(dcc11);
   MSS_nhe2.AddDeltaCostComponent(dcc13);
   
-  
   SetUnionNeighborhoodExplorer<MSS_Input, MSS_State, DefaultCostStructure<int>, decltype(MSS_nhe), decltype(MSS_nhe2)> 
   MSS_bnhe(in, MSS_sm, "Bimodal Move/Swap", MSS_nhe, MSS_nhe2, {1.0 - swap_rate, swap_rate});
 
-  
   HillClimbing<MSS_Input, MSS_State, MSS_Move> MSS_hc(in, MSS_sm, MSS_nhe, "MSS_MoveHillClimbing");
   SteepestDescent<MSS_Input, MSS_State, MSS_Move> MSS_sd(in, MSS_sm, MSS_nhe, "MSS_MoveSteepestDescent");
   SimulatedAnnealing<MSS_Input, MSS_State, MSS_Move> MSS_sa(in, MSS_sm, MSS_nhe, "MSS_MoveSimulatedAnnealing");
@@ -118,7 +108,6 @@ int main(int argc, const char* argv[])
   SteepestDescent<MSS_Input, MSS_State, decltype(MSS_bnhe)::MoveType> MSS_bsd(in, MSS_sm, MSS_bnhe, "MSS_BimodalSteepestDescent");
   SimulatedAnnealingEvaluationBased<MSS_Input, MSS_State, decltype(MSS_bnhe)::MoveType> MSS_bsa(in, MSS_sm, MSS_bnhe, "MSS_BSA");
 
-  
   Tester<MSS_Input, MSS_Output, MSS_State> tester(in,MSS_sm,MSS_om);
   MoveTester<MSS_Input, MSS_Output, MSS_State, MSS_Move> move_test(in,MSS_sm,MSS_om,MSS_nhe, "MSS_Move move", tester);
   MoveTester<MSS_Input, MSS_Output, MSS_State, MSS_Swap> swap_move_test(in,MSS_sm,MSS_om,MSS_nhe2, "MSS_Swap move", tester); 
@@ -194,7 +183,7 @@ int main(int argc, const char* argv[])
           {
             initial_time = time;
             initial_cost = cost;
-	    mip_time -= initial_time;	
+	          mip_time -= initial_time;	
           }
       }
 
