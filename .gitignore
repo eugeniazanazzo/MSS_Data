@@ -72,5 +72,6 @@ Instances/.DS_Store
 Instances/Generated/.DS_Store
 .DS_Store
 *.o
+*.csv
 mss
 easylocal-3/.DS_Store
